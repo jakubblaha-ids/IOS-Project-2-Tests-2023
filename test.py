@@ -169,7 +169,7 @@ def no_unallowed_breaks(output):
             service_n = line.strip()[-1]
             d[service_n] += 1
         elif "taking break" in line:
-            if d['1'] or d['2'] or d['3']:
+            if d['1'] > 0 or d['2'] > 0 or d['3'] > 0:
                 error("Customer not served ASAP!")
                 print(line)
                 ok = False
@@ -193,6 +193,11 @@ def entering_and_serving_match(output):
         elif "serving a service of type" in line:
             service_n = line.strip()[-1]
             d[service_n] -= 1
+
+            if d[service_n] < 0:
+                error(
+                    f"Number of customers waiting in line {service_n} fallen under 0 (to {d[service_n]}). Are your workers fighting over customers?")
+                print(line)
 
     ok = True
 
