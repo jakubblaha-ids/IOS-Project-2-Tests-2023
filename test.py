@@ -43,6 +43,7 @@ def check_log_numbers_ascending(output):
 
         if log_n != last_log_n + 1:
             error("Found a log lines whichs' log numbers are not in ascending order!")
+            print(line)
             return False
 
         last_log_n = log_n
@@ -147,6 +148,7 @@ def check_no_entering_after_close(output):
         if closing_log_seen:
             if "entering office for a service" in line:
                 error("Entering office log seen after closing log")
+                print(line)
                 ok = False
         elif "closing" in line:
             closing_log_seen = True
@@ -169,6 +171,7 @@ def no_unallowed_breaks(output):
         elif "taking break" in line:
             if d['1'] or d['2'] or d['3']:
                 error("Customer not served ASAP!")
+                print(line)
                 ok = False
         elif "serving a service of type" in line:
             service_n = line.strip()[-1]
@@ -220,6 +223,9 @@ def main():
     parser.add_argument('TZ', type=int)
     parser.add_argument('TU', type=int)
     parser.add_argument('F', type=int)
+    parser.add_argument("--no-exec",
+                        help="Do not execute project binary, just check the logs.",
+                        action='store_true')
 
     args = parser.parse_args()
 
@@ -233,12 +239,12 @@ def main():
 
     proj_args = list(map(str, [n_cust, n_worker, t_cust, t_worker, f]))
 
-    print("Using executable:", full_exec_path)
-    print("Using arguments:", proj_args)
+    if not args.no_exec:
+        print("Using executable:", full_exec_path)
+        print("Using arguments:", proj_args)
 
-    result = subprocess.run([full_exec_path, *proj_args])
-
-    print("Program exit code:", result.returncode)
+        result = subprocess.run([full_exec_path, *proj_args])
+        print("Program exit code:", result.returncode)
 
     try:
         with open(PROJ_OUT_FILE, 'r') as f:
@@ -250,6 +256,9 @@ def main():
     print("========== This is your project output ==========")
     print(*output, sep="")
     print("========== This is the end of your project output ==========")
+
+    if args.no_exec:
+        print(WARNING + "Skipped binary execution. Only checking log. Please make sure correct arguments are supplied." + ENDC)
 
     print("Your output contains", len(output), "lines (line breaks)")
 
