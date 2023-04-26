@@ -154,7 +154,29 @@ def check_no_entering_after_close(output):
             closing_log_seen = True
 
     if ok:
-        success("No entering office log after closing log")
+        success("No entering office log after closing log.")
+
+    return ok
+
+
+def check_no_worker_going_home_before_close(output):
+    closing_log_seen = False
+
+    ok = True
+
+    for line in output:
+        if not closing_log_seen and "U" in line and "going home" in line:
+            error("Worker went home before the post office got closed")
+            print(line)
+            ok = False
+        elif "closing" in line:
+            break
+
+    if ok:
+        success("No workers going home early.")
+
+    else:
+        error("Some workers wen't home early, check log above!")
 
     return ok
 
@@ -295,6 +317,7 @@ def main():
     closing_exactly_once(output)
     taking_break_and_break_finished_match(output, n_worker)
     check_no_entering_after_close(output)
+    check_no_worker_going_home_before_close(output)
     no_unallowed_breaks(output)
     entering_and_serving_match(output)
 
